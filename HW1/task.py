@@ -118,7 +118,6 @@ class Task(object):
             self.kill_job(time)
             return True
 
-
         return is_preemptive
 
     def get_history(self, max_time):
