@@ -1,7 +1,7 @@
 from HW1.task import Task, RUNNING, PERIODIC
 from HW1.task_set import TaskSet
 from HW1.util.enum import SCHEDULING_ALG_RM, SCHEDULING_ALG_DM, SCHEDULING_ALG_EDF
-from HW1.util.time_range import time_range
+from HW1.util.time_range import TimeRange
 
 
 class Scheduler:
@@ -11,7 +11,7 @@ class Scheduler:
         task_set (TaskSet): Task set to be scheduled
     """
 
-    def __init__(self, task_set: TaskSet, max_time: int, algorithm=SCHEDULING_ALG_RM, preemptive=True):
+    def __init__(self, task_set: TaskSet, max_time: int, algorithm, preemptive):
         self.task_set = task_set
         self.time = 0
         self.max_time = max_time
@@ -33,7 +33,7 @@ class Scheduler:
             feasible = task.feasible and feasible
 
         for t in self.free_times:
-            self.completed_tasks.append((t.start, t.finish, "no job scheduled"))
+            self.completed_tasks.append((t.start, t.end, "no task"))
 
         self.task_set.set_utility(float(run_time) / self.max_time)
         self.task_set.set_feasible(feasible)
@@ -89,28 +89,29 @@ class Scheduler:
             elif self.algorithm == SCHEDULING_ALG_EDF:
                 if task.job.get_absolute_deadline() < running_task.job.get_absolute_deadline():
                     running_task = task
+
         return running_task
 
     def run(self):
         all_tasks = self.task_set.get_all_tasks()
-        is_preemptive = False
+        is_preemptive = self.preemptive
 
         running_task = self.get_running_task()
 
         for task in all_tasks:
             is_preemptive = task.task_job_runtime(time=self.time) or is_preemptive
 
-        hp_task = None
         if is_preemptive:
             hp_task = self.schedule()
             if hp_task:
                 hp_task.run_job(self.time)
 
         hp_task = self.get_running_task()
+
         if (self.time == 0 and running_task is None and hp_task is None) or (running_task and hp_task is None):
-            self.free_times.append(time_range(self.time))
+            self.free_times.append(TimeRange(self.time))
         elif (running_task is None and hp_task) or (self.time == self.max_time and not running_task and not hp_task):
-            self.free_times[-1].finish = self.time
+            self.free_times[-1].end = self.time
 
         if self.time == self.max_time:
             running_task = self.get_running_task()

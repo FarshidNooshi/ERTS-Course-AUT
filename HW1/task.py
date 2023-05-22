@@ -1,5 +1,5 @@
 from HW1.util.job import Job
-from HW1.util.time_range import time_range
+from HW1.util.time_range import TimeRange
 
 RUNNING = 0  # Currently executing on the processor
 READY = 1  # Ready to run but task of higher or equal priority is currently running
@@ -96,15 +96,15 @@ class Task(object):
     def stop_job(self, time):
         if self.job:
             if len(self.job.time_ranges) == 0:
-                self.job.time_ranges.append(time_range(time, time))
+                self.job.time_ranges.append(TimeRange(time, time))
             elif self.state == RUNNING:
-                self.job.time_ranges[-1].finish = time
+                self.job.time_ranges[-1].end = time
             self.state = READY
 
     def run_job(self, time):
         if self.job and self.state == READY:
             self.state = RUNNING
-            self.job.time_ranges.append(time_range(time))
+            self.job.time_ranges.append(TimeRange(time))
 
     def get_history(self, max_time):
         history = []
@@ -112,18 +112,18 @@ class Task(object):
 
             if job.run_time > 0:
                 for t in job.time_ranges:
-                    history.append((t.start, t.finish, self.name))
+                    history.append((t.start, t.end, self.name))
 
-            if job.run_time < self.wcet and job.time_ranges[-1].finish != max_time:
+            if job.run_time < self.wcet and job.time_ranges[-1].end != max_time:
                 history.append(
-                    (job.time_ranges[-1].finish, job.time_ranges[-1].finish,
-                     "Abort {}, Remaining Execution Time is {}".format(self.name, self.wcet - job.run_time)
+                    (job.time_ranges[-1].end, job.time_ranges[-1].end,
+                     "Abort {}, Remaining WCET: {}".format(self.name, self.wcet - job.run_time)
                      )
                 )
 
         if self.job:
             for t in self.job.time_ranges:
-                history.append((t.start, t.finish, self.name))
+                history.append((t.start, t.end, self.name))
         return history
 
     def get_run_time(self):

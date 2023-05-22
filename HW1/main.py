@@ -42,5 +42,5 @@ class Main:
 
 
 if __name__ == '__main__':
-    main = Main(350)
+    main = Main(120)
     main.run()

@@ -42,6 +42,26 @@ class TaskSetPrinter:
             print(f"Time {i}:")
             self.printer.print_task(task)
 
+    @staticmethod
+    def print_result(history, feasible, utility):
+        """Print the result of the scheduling
+
+        Args:
+            history (List[Tuple[int, int, str]]): A list of tuples of the form (start_time, end_time, task_name)
+            feasible (bool): Whether the schedule is feasible
+            utility (float): The utility of the schedule
+        """
+        print("History:")
+        for h in history:
+            if h[0] == h[1]:
+                print("  Time {}: {}".format(h[0], h[2]))
+            else:
+                print("  Time {} to {}: {}".format(h[0], h[1], h[2]))
+
+        print("Feasible: {}".format(feasible))
+        print("Utility: {}".format(utility))
+
+
     def set_task_set(self, task_set):
         """Set the task set to print
         

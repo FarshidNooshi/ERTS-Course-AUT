@@ -1,20 +1,23 @@
 from task import Task
+
+
 class TaskSet:
     """Task Set Class
     
     Attributes:
         tasks (list): List of Task objects
         utility (float): Utility of the task set
-        self.feasible (bool): Whether the task set is feasible
+        self.Feasible (bool): Whether the task set is feasible
     """
-    def __init__(self, tasks=[]):
-        
+
+    def __init__(self, tasks=None):
+
+        if tasks is None:
+            tasks = []
         self.tasks = tasks
         self.utility = 0
         self.feasible = False
-        
-        
-        
+
     def add_task(self, task):
         """Add a task to the task set
         
@@ -22,7 +25,7 @@ class TaskSet:
             task (Task): Task object to add
         """
         self.tasks.append(task)
-        
+
     def remove_task(self, task):
         """Remove a task from the task set
         
@@ -30,7 +33,7 @@ class TaskSet:
             task (Task): Task object to remove
         """
         self.tasks.remove(task)
-        
+
     def get_task_by_name(self, name) -> Task:
         """Get a task from the task set by name
         
@@ -44,7 +47,7 @@ class TaskSet:
             if task.name == name:
                 return task
         return None
-    
+
     def get_all_tasks(self) -> list:
         """Get a list of all tasks in the task set
         
@@ -52,6 +55,7 @@ class TaskSet:
             list: List of all Task objects in the task set
         """
         return self.tasks
+
     def set_feasible(self, feasible):
         """Set the feasibility of the task set
         
@@ -59,6 +63,7 @@ class TaskSet:
             feasible (bool): Whether the task set is feasible
         """
         self.feasible = feasible
+
     def set_utility(self, utility):
         """Set the utility of the task set
         
@@ -66,4 +71,3 @@ class TaskSet:
             utility (float): Utility of the task set
         """
         self.utility = utility
-    
