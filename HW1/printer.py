@@ -61,7 +61,6 @@ class TaskSetPrinter:
         print("Feasible: {}".format(feasible))
         print("Utility: {}".format(utility))
 
-
     def set_task_set(self, task_set):
         """Set the task set to print
         
