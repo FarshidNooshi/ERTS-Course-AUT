@@ -13,7 +13,7 @@ class RTOS:
             task_set (TaskSet): The task set to run on the operating system
         """
         self.task_set = task_set
-        self.scheduler = Scheduler(self.task_set, max_time=duration, algorithm=SCHEDULING_ALG_RM, preemptive=False)
+        self.scheduler = Scheduler(self.task_set, max_time=duration, algorithm=SCHEDULING_ALG_RM, preemptive=True)
         self.printer = Printer()
 
     def run(self, duration):
@@ -26,14 +26,14 @@ class RTOS:
             List of Task: The completed task set after running on the operating system for the specified duration
         """
         completed_tasks = []
-        for i in range(duration):
+        for i in range(duration + 1):
             # self.scheduler.schedule()
             self.scheduler.run()
             completed_tasks += self.scheduler.completed_tasks
 
         self.printer.print_schedule(completed_tasks)
 
-        history, feasible, utility = self.scheduler.get_result()
+        history, feasible, utility = self.scheduler.generate_parameters()
         self.printer.print_result(history, feasible, utility)
 
         return completed_tasks
