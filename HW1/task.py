@@ -124,21 +124,17 @@ class Task(object):
         history = []
         for job in self.job_history:
 
-            if job.run_time > 0:
-                for t in job.time_ranges:
-                    history.append((t.start, t.end, self.name))
-
             if job.run_time < self.wcet and job.time_ranges[-1].end != max_time:
                 history.append(
                     (job.time_ranges[-1].end, job.time_ranges[-1].end,
                      "Abort {}, Remaining Execution Time is {}".format(self.name, self.wcet - job.run_time)
                      )
                 )
+            if job.run_time > 0:
+                for t in job.time_ranges:
+                    history.append((t.start, t.end, self.name))
 
-        if self.job:
-            for t in self.job.time_ranges:
-                history.append((t.start, t.end, self.name))
-        return history
+        return history + [(t.start, t.end, self.name) for t in self.job.time_ranges] if self.job else history
 
     def get_run_time(self):
         return sum([job.run_time for job in self.job_history])
