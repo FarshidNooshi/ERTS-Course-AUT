@@ -131,6 +131,9 @@ class Scheduler:
 
         hp_task = self.do_step(is_preemptive)
 
+        if self.time == 118:
+            print(hp_task)
+
         self.update_free_times(hp_task, running_task)
 
         if self.time == self.max_time:

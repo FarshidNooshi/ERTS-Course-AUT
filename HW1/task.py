@@ -104,6 +104,11 @@ class Task(object):
                 self.kill_job(time)
                 is_preemptive = True
 
+        if self.task_type == PERIODIC and (time - self.act_time) % self.period == 0:
+            self.kill_job(time)
+            self.job = Job(act_time=time, deadline=self.deadline)
+            return True
+
         if time == self.act_time:
             self.kill_job(time)
             self.job = Job(act_time=time, deadline=self.deadline)
@@ -113,10 +118,6 @@ class Task(object):
             self.kill_job(time)
             return True
 
-        if self.task_type == PERIODIC and (time - self.act_time) % self.period == 0:
-            self.kill_job(time)
-            self.job = Job(act_time=time, deadline=self.deadline)
-            return True
 
         return is_preemptive
 
