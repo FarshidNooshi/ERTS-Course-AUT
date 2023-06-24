@@ -66,8 +66,9 @@ def plot_tasks(scheduler):
     ax.set_title(
         'Task set with scheduler: ERTS HW3 and policy: {0}'.format(scheduler.resource_access_protocol))
 
+    # save the figure
+    fig.savefig(f"doc/result/task_set_{scheduler.resource_access_protocol}.png", bbox_inches='tight')
     plt.show()
-    plt.savefig(f"doc/result/task_set_{scheduler.resource_access_protocol}.png")
 
 
 class TaskSetJsonKeys(object):
@@ -203,12 +204,6 @@ class TaskSetDefinition(object):
         print("\nTask Set:")
         for task in self:
             print(task)
-
-    def printJobs(self):
-        print("\nJobs:")
-        for task in self:
-            for job in task.get_task_instance_to_run():
-                print(job)
 
     def generate_gantt_chart(self):
         fig, ax = plt.subplots()
@@ -507,13 +502,15 @@ class Scheduler(object):
 
 
 def main():
-    DATA_FILE = "data/json/HLP_taskset.json"
+    DATA_FILE = "data/json/NPP-taskset.json"
 
     with open(DATA_FILE) as json_data:
         data = json.load(json_data)
 
-    scheduler = Scheduler(data, resource_access_protocol=HLP)
+    scheduler = Scheduler(data, resource_access_protocol=NPP)
     print("Scheduler: ", scheduler.algorithm, " ", scheduler.resource_access_protocol)
+
+    scheduler.task_set.print_tasks()
 
     # Scheduler loop - runs until end time
     while scheduler.start_time + scheduler.timer <= scheduler.end_time:
@@ -526,6 +523,8 @@ def main():
     # Declaring a figure "gnt"
     plot_tasks(scheduler)
     print("Utilization: ", scheduler.get_utilization())
+    # print is_feasible is True if the task set is feasible, else False
+    print("Is feasible: ", scheduler.job_queue.is_feasible)
 
 
 if __name__ == "__main__":
