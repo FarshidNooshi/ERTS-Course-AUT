@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
 """
-taskset.py - parser for task set from JSON file
+taskSet.py - parser for task set from JSON file
 """
 
 import json
 from threading import Thread, Lock
+from time import sleep
+
+import numpy as np
+from matplotlib import pyplot as plt
 
 
 class TaskSetJsonKeys(object):
@@ -43,6 +47,8 @@ class TaskSetIterator:
 
 class TaskSet(object):
     def __init__(self, data):
+        self.jobs = None
+        self.tasks = None
         self.parseDataToTasks(data)
         self.buildJobReleases(data)
 
@@ -113,6 +119,26 @@ class TaskSet(object):
         for task in self:
             for job in task.getJobs():
                 print(job)
+
+    def generate_gantt_chart(self):
+        fig, ax = plt.subplots()
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Tasks")
+        ax.set_yticks([(i + 1) for i in range(len(self.tasks))])
+        ax.set_yticklabels([f"Task {task.id}" for (id, task) in self.tasks.items()])
+        ax.grid(True, which='both', axis='x', linestyle='--', linewidth=1)
+        # set the x-splitter to be the 5
+        ax.set_xticks(np.arange(0, 100, 5))
+
+        for (id, task) in self.tasks.items():  # Plotting the jobs
+            for job in task.getJobs():
+                release_time = job.releaseTime
+                deadline = job.deadline
+                execution_time = task.sections[0][1]  # Assuming all sections have the same execution time
+                ax.broken_barh([(release_time, execution_time)], (task.id - 0.4, 0.8), facecolors="tab:blue")
+                ax.plot([deadline, deadline], [task.id - 0.2, task.id + 0.2], color="red")
+
+        plt.show()
 
 
 class Task(object):
@@ -227,8 +253,11 @@ class Job(object):
                 self.remainingSectionTime = self.task.sections[self.currentSectionIndex][1]
 
     def executeToCompletion(self):
+        totalExecutionTime = 0
         while not self.isCompleted():
             self.execute(1)
+            totalExecutionTime += 1
+        return totalExecutionTime
 
     def isCompleted(self):
         return self.currentSectionIndex >= len(self.task.sections)
@@ -260,11 +289,13 @@ class JobQueue(object):
 
 
 class Scheduler(Thread):
-    def __init__(self, taskSet):
+    def __init__(self, taskSet, resourceAllocationProtocol="NPP"):
         super(Scheduler, self).__init__()
         self.taskSet = taskSet
         self.jobQueue = JobQueue()
         self.isRunning = False
+        self.globalTime = 0.0
+        self.resourceAllocationProtocol = resourceAllocationProtocol
 
     def startScheduling(self):
         self.isRunning = True
@@ -277,30 +308,75 @@ class Scheduler(Thread):
     def run(self):
         while self.isRunning:
             # Schedule jobs here based on the selected scheduling algorithm
-            # and synchronization protocols
             job = self.jobQueue.dequeue()
             if job:
-                # Execute the job
-                job.executeToCompletion()
+                self.scheduleJob(job)
+            sleep(5)
 
     def addJob(self, job):
         self.jobQueue.enqueue(job)
 
+    def scheduleJob(self, job):
+        # Determine the earliest deadline job in the queue
+        earliestDeadlineJob = None
+        releasedJobs = [j for j in self.jobQueue.queue if j.releaseTime <= self.globalTime]
+        for queuedJob in releasedJobs:
+            if earliestDeadlineJob is None or queuedJob.deadline < earliestDeadlineJob.deadline:
+                earliestDeadlineJob = queuedJob
+
+        if earliestDeadlineJob is None or job.deadline < earliestDeadlineJob.deadline:
+            # Execute the job immediately
+            self.globalTime += job.executeToCompletion()
+        else:
+            # Determine the available resources for the job
+            heldResources = job.getResourceHeld()
+            waitingResources = job.getResourceWaiting()
+
+            # HLP: Check if any queued job holds a resource that the current job is waiting for
+            if self.resourceAllocationProtocol == "HLP":
+                for queuedJob in releasedJobs:
+                    queuedJobHeldResources = queuedJob.getResourceHeld()
+                    if waitingResources.intersection(queuedJobHeldResources):
+                        # Wait for the queued job to finish
+                        while not queuedJob.isCompleted():
+                            pass  # Idle loop until the queued job completes
+
+                        # Execute the job
+                        self.globalTime += job.executeToCompletion()
+                        return
+
+            # NPP: Check if the current job holds a resource that any queued job is waiting for
+            elif self.resourceAllocationProtocol == "NPP":
+                for queuedJob in releasedJobs:
+                    queuedJobWaitingResources = queuedJob.getResourceWaiting()
+                    if heldResources.intersection(queuedJobWaitingResources):
+                        # Wait for the queued job to finish
+                        while not queuedJob.isCompleted():
+                            pass  # Idle loop until the queued job completes
+
+                        # Execute the job
+                        self.globalTime += job.executeToCompletion()
+                        return
+            else:
+                raise Exception("Invalid resource allocation protocol")
+
+            # No resource conflicts, execute the job immediately
+            self.globalTime += job.executeToCompletion()
+
 
 def main():
+    JSON_FILE = "data/json/NPP-taskset.json"
     # Load task set from JSON file
-    with open("task_set.json") as file:
+    with open(JSON_FILE) as file:
         data = json.load(file)
 
     # Create task set
     taskSet = TaskSet(data)
 
-    # Print task set information
-    taskSet.printTasks()
-    taskSet.printJobs()
-
     # Create scheduler and start scheduling
-    scheduler = Scheduler(taskSet)
+    scheduler = Scheduler(taskSet, resourceAllocationProtocol="NPP")
+
+    # Start scheduling (run the thread)
     scheduler.startScheduling()
 
     # Add jobs to the scheduler
@@ -310,6 +386,11 @@ def main():
 
     # Stop scheduling
     scheduler.stopScheduling()
+
+    # Print task set information
+    taskSet.printTasks()
+    taskSet.printJobs()
+    taskSet.generate_gantt_chart()
 
 
 if __name__ == "__main__":
