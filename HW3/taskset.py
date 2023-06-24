@@ -6,6 +6,7 @@ taskset.py - parser for task set from JSON file
 
 import json
 import sys
+from threading import Thread, Lock
 
 
 class TaskSetJsonKeys(object):
@@ -57,7 +58,7 @@ class TaskSet(object):
                 return
 
             if task.period < 0 and task.relativeDeadline < 0:
-                print("Error: aperiodic task must have positive relative deadline")
+                print("Error: aperiodic task must have a positive relative deadline")
                 return
 
             taskSet[task.id] = task
@@ -129,9 +130,14 @@ class Task(object):
         self.lastReleasedTime = 0.0
 
         self.jobs = []
+        self.locks = []  # Locks for synchronization
+
+        for _ in range(len(self.sections)):
+            self.locks.append(Lock())
 
     def getAllResources(self):
-        @TODO
+        # TODO: Implement
+        pass
 
     def spawnJob(self, releaseTime):
         if self.lastReleasedTime > 0 and releaseTime < self.lastReleasedTime:
@@ -139,7 +145,7 @@ class Task(object):
             return None
 
         if self.lastReleasedTime > 0 and releaseTime < self.lastReleasedTime + self.period:
-            print("INVDALID: release times are not separated by period")
+            print("INVALID: release times are not separated by period")
             return None
 
         self.lastJobId += 1
@@ -168,52 +174,125 @@ class Task(object):
         return None
 
     def getUtilization(self):
-        @TODO
+        # TODO: Implement
+        pass
+
+    def processSection(self, sectionIndex):
+        # TODO: Implement section processing logic
+        pass
 
     def __str__(self):
-        return "task {0}: (Φ,T,C,D,∆) = ({1}, {2}, {3}, {4}, {5})".format(self.id, self.offset, self.period, self.wcet,
-                                                                          self.relativeDeadline, self.sections)
+        return "task {0}: (Φ,T,C,D,∆) = ({1}, {2}, {3}, {4}, {5})".format(
+            self.id, self.offset, self.period, self.wcet, self.relativeDeadline, self.sections)
 
 
 class Job(object):
     def __init__(self, task, jobId, releaseTime):
-        @TODO
+        self.task = task
+        self.id = jobId
+        self.releaseTime = releaseTime
+        self.deadline = self.releaseTime + self.task.relativeDeadline
+        self.currentSectionIndex = 0
+        self.remainingSectionTime = self.task.sections[self.currentSectionIndex][1]
 
     def getResourceHeld(self):
-        '''the resources that it's currently holding'''
-        @TODO        
+        # TODO: Implement
+        pass
 
-    def getRecourseWaiting(self):
-        '''a resource that is being waited on, but not currently executing'''
-        @TODO
-        
-    def getRemainingSectionTime(self):
-        @TODO
+    def getResourceWaiting(self):
+        # TODO: Implement
+        pass
 
     def execute(self, time):
-        @TODO
-        
+        # TODO: Implement job execution logic
+        pass
+
     def executeToCompletion(self):
-        @TODO
+        # TODO: Implement job execution logic until completion
+        pass
 
     def isCompleted(self):
-        @TODO
+        # TODO: Implement
+        pass
 
     def __str__(self):
-        return "[{0}:{1}] released at {2} -> deadline at {3}".format(self.task.id, self.id, self.releaseTime,
-                                                                     self.deadline)
+        return "[{0}:{1}] released at {2} -> deadline at {3}".format(
+            self.task.id, self.id, self.releaseTime, self.deadline)
+
+
+class JobQueue(object):
+    def __init__(self):
+        self.queue = []
+        self.lock = Lock()
+
+    def enqueue(self, job):
+        with self.lock:
+            self.queue.append(job)
+
+    def dequeue(self):
+        with self.lock:
+            if len(self.queue) > 0:
+                return self.queue.pop(0)
+            else:
+                return None
+
+    def size(self):
+        with self.lock:
+            return len(self.queue)
+
+
+class Scheduler(Thread):
+    def __init__(self, taskSet):
+        super(Scheduler, self).__init__()
+        self.taskSet = taskSet
+        self.jobQueue = JobQueue()
+        self.isRunning = False
+
+    def startScheduling(self):
+        self.isRunning = True
+        self.start()
+
+    def stopScheduling(self):
+        self.isRunning = False
+        self.join()
+
+    def run(self):
+        while self.isRunning:
+            # Schedule jobs here based on the selected scheduling algorithm
+            # and synchronization protocols
+            job = self.jobQueue.dequeue()
+            if job:
+                # Execute the job
+                job.executeToCompletion()
+
+    def addJob(self, job):
+        self.jobQueue.enqueue(job)
+
+
+def main():
+    # Load task set from JSON file
+    with open("task_set.json") as file:
+        data = json.load(file)
+
+    # Create task set
+    taskSet = TaskSet(data)
+
+    # Print task set information
+    taskSet.printTasks()
+    taskSet.printJobs()
+
+    # Create scheduler and start scheduling
+    scheduler = Scheduler(taskSet)
+    scheduler.startScheduling()
+
+    # Add jobs to the scheduler
+    for task in taskSet:
+        for job in task.getJobs():
+            scheduler.addJob(job)
+
+    # Stop scheduling
+    scheduler.stopScheduling()
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        file_path = sys.argv[1]
-    else:
-        file_path = "taskset.json"
-
-    with open(file_path) as json_data:
-        data = json.load(json_data)
-
-    taskSet = TaskSet(data)
-
-    taskSet.printTasks()
-    taskSet.printJobs()
+    main()
