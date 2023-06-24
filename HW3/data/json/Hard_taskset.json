@@ -1,0 +1,38 @@
+{
+    "startTime": 0,
+    "endTime": 30,
+    "taskset": [
+        {
+            "taskId": 1,
+            "period": 20,
+            "wcet": 6,
+            "deadline": 20,
+            "offset": 2,
+            "sections": [[0,2],[1,2],[2,2]]
+        },
+        {
+            "taskId": 2,
+            "period": 30,
+            "wcet": 20,
+            "deadline": 30,
+            "offset": 6,
+            "sections": [[0,16], [2,4]]
+        },
+        {
+            "taskId": 3,
+            "period": 40,
+            "wcet": 4,
+            "deadline": 40,
+            "offset": 0,
+            "sections": [[0,1],[1,2],[2,1]]
+        },
+        {
+            "taskId": 4,
+            "period": 40,
+            "wcet": 19,
+            "deadline": 28,
+            "offset": 0,
+            "sections": [[0,1],[1,13],[2,5]]
+        }
+    ]
+}

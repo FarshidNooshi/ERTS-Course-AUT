@@ -5,7 +5,6 @@ taskset.py - parser for task set from JSON file
 """
 
 import json
-import sys
 from threading import Thread, Lock
 
 
@@ -136,8 +135,11 @@ class Task(object):
             self.locks.append(Lock())
 
     def getAllResources(self):
-        # TODO: Implement
-        pass
+        resources = set()
+        for section in self.sections:
+            semaphoreId = section[0]
+            resources.add(semaphoreId)
+        return resources
 
     def spawnJob(self, releaseTime):
         if self.lastReleasedTime > 0 and releaseTime < self.lastReleasedTime:
@@ -174,12 +176,20 @@ class Task(object):
         return None
 
     def getUtilization(self):
-        # TODO: Implement
-        pass
+        return self.wcet / self.period
 
     def processSection(self, sectionIndex):
+        semaphoreId, sectionTime = self.sections[sectionIndex]
+
+        # Acquire the semaphore lock
+        semaphore = self.locks[semaphoreId]
+        semaphore.acquire()
+
+        # Process the section
         # TODO: Implement section processing logic
-        pass
+
+        # Release the semaphore lock
+        semaphore.release()
 
     def __str__(self):
         return "task {0}: (Φ,T,C,D,∆) = ({1}, {2}, {3}, {4}, {5})".format(
@@ -196,24 +206,32 @@ class Job(object):
         self.remainingSectionTime = self.task.sections[self.currentSectionIndex][1]
 
     def getResourceHeld(self):
-        # TODO: Implement
-        pass
+        resources = set()
+        for sectionIndex in range(self.currentSectionIndex + 1):
+            semaphoreId = self.task.sections[sectionIndex][0]
+            resources.add(semaphoreId)
+        return resources
 
     def getResourceWaiting(self):
-        # TODO: Implement
-        pass
+        resources = set()
+        for sectionIndex in range(self.currentSectionIndex + 1, len(self.task.sections)):
+            semaphoreId = self.task.sections[sectionIndex][0]
+            resources.add(semaphoreId)
+        return resources
 
     def execute(self, time):
-        # TODO: Implement job execution logic
-        pass
+        self.remainingSectionTime -= time
+        if self.remainingSectionTime <= 0:
+            self.currentSectionIndex += 1
+            if self.currentSectionIndex < len(self.task.sections):
+                self.remainingSectionTime = self.task.sections[self.currentSectionIndex][1]
 
     def executeToCompletion(self):
-        # TODO: Implement job execution logic until completion
-        pass
+        while not self.isCompleted():
+            self.execute(1)
 
     def isCompleted(self):
-        # TODO: Implement
-        pass
+        return self.currentSectionIndex >= len(self.task.sections)
 
     def __str__(self):
         return "[{0}:{1}] released at {2} -> deadline at {3}".format(
