@@ -10,7 +10,7 @@ class RTOS:
         """Initialize the RTOs instance
         
         Args:
-            task_set (TaskSet): The task set to run on the operating system
+            task_set (TaskSetDefinition): The task set to run on the operating system
         """
         self.task_set = task_set
         self.scheduler = Scheduler(self.task_set, max_time=duration, algorithm=SCHEDULING_ALG_EDF, preemptive=False)
@@ -42,7 +42,7 @@ class RTOS:
         """Set the task set for the operating system
         
         Args:
-            task_set (TaskSet): The task set to run on the operating system
+            task_set (TaskSetDefinition): The task set to run on the operating system
         """
         self.task_set = task_set
         self.scheduler.set_task_set(task_set)

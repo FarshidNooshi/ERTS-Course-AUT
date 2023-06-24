@@ -26,8 +26,8 @@ class Task(object):
         period (int): Period of the task
         wcet (int): Worst case execution time of the task
         deadline (int): Deadline of the task
-        job_history (list[Job]): List of jobs that have run
-        job (Job): Current job that is running
+        job_history (list[TaskInstance]): List of jobs that have run
+        job (TaskInstance): Current job that is running
         feasible (bool): If the task is feasible
     """
 

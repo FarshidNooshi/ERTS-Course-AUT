@@ -27,7 +27,7 @@ class TaskSetPrinter:
         """Initialize the TaskSetPrinter instance
         
         Args:
-            task_set (TaskSet): The task set to print
+            task_set (TaskSetDefinition): The task set to print
         """
         self.task_set = task_set
         self.printer = Printer()
@@ -65,6 +65,6 @@ class TaskSetPrinter:
         """Set the task set to print
         
         Args:
-            task_set (TaskSet): The task set to print
+            task_set (TaskSetDefinition): The task set to print
         """
         self.task_set = task_set

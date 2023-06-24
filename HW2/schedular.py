@@ -9,7 +9,7 @@ class Scheduler:
     """Scheduler Class
 
     Attributes:
-        task_set (TaskSet): Task set to be scheduled
+        task_set (TaskSetDefinition): Task set to be scheduled
     """
 
     def __init__(self, task_set: TaskSet, max_time: int, algorithm, preemptive):
