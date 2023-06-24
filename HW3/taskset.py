@@ -22,11 +22,9 @@ NPP_PRIORITY = -1
 
 NPP = 0
 HLP = 1
-PIP = 2
 
 RM = 0
 DM = 1
-EDF = 2
 
 
 def plot_tasks(scheduler):
@@ -303,12 +301,14 @@ class TaskInstance(object):
         if self.is_completed():
             return False
 
+        # if the task is waiting for a resource
         if self.semaphore_id != 0 and resources.get(self.semaphore_id) != self:
             return True
 
         self.total_runtime += 1
         self.section_runtime += 1
 
+        # if the task is waiting for a resource
         if self.get_remaining_section_time() == 0:
             self.section_runtime = 0
             resources[self.semaphore_id] = None
@@ -507,14 +507,15 @@ class Scheduler(object):
 
 
 def main():
-    file_path = "data/json/HLP_taskset.json"
+    DATA_FILE = "data/json/HLP_taskset.json"
 
-    with open(file_path) as json_data:
+    with open(DATA_FILE) as json_data:
         data = json.load(json_data)
 
     scheduler = Scheduler(data, resource_access_protocol=HLP)
     print("Scheduler: ", scheduler.algorithm, " ", scheduler.resource_access_protocol)
 
+    # Scheduler loop - runs until end time
     while scheduler.start_time + scheduler.timer <= scheduler.end_time:
         scheduler.schedule_tasks()
         scheduler.timer += 1
