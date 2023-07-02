@@ -44,3 +44,11 @@ J
 HW3/data/json/taskset.json,2/0/202cdeddcb79c10f6799c3b7c8414fdd44a3c0dc
 N
 HW3/data/json/HLP_taskset.json,d/0/d0f88f46c113475682710db01712dd5ac820b649
+S
+#.idea/sonarlint/issuestore/index.pb,9/f/9fe84ebb15faf917b7def6236dba604453cc61e0
+O
+HW3/data/json/Hard_taskset.json,9/4/94ebc07f9db1988c7b0244f0f444fa98842a05fa
+]
+-.idea/sonarlint/securityhotspotstore/index.pb,8/8/88a9255124c95bdc913197c120a8d560edc59c8e
+>
+HW3/taskset.py,3/8/38b9cb4baa26a9249b2d58453099c24b3954d0ff
